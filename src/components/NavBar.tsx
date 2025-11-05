@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { subscribeActivity } from "@/lib/firestore";
 import { Activity } from "@/types/activity";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { loadSettings, onSettingsUpdated, saveSettings } from "@/lib/settings";
 
 export function Navbar() {
@@ -13,6 +14,7 @@ export function Navbar() {
   const [activity, setActivity] = useState<Activity[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState(loadSettings());
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeActivity((items) => setActivity(items));
@@ -26,6 +28,7 @@ export function Navbar() {
   const unreadCount = useMemo(() => Math.min(activity.length, 9), [activity]);
 
   return (
+    <>
     <nav className="bg-card border-b border-border shadow-soft">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -46,7 +49,7 @@ export function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-3">
-            <AddZoneModal onZoneAdded={() => { /* Index page reloads zones via subscription */ }} />
+            <AddZoneModal onZoneAdded={() => { window.dispatchEvent(new Event("zone:refresh")); }} buttonLabel="New Zone" />
 
             <div className="relative">
               <DropdownMenu>
@@ -110,7 +113,7 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => setProfileOpen(true)}>
               <User className="h-5 w-5" />
             </Button>
           </div>
@@ -134,7 +137,7 @@ export function Navbar() {
         {/* Mobile Menu */}
         {mobileOpen && (
           <div className="sm:hidden flex flex-col gap-2 pb-4 border-t border-border mt-2">
-            <AddZoneModal onZoneAdded={() => {}} />
+            <AddZoneModal onZoneAdded={() => { window.dispatchEvent(new Event("zone:refresh")); }} buttonLabel="New Zone" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="w-full">
@@ -192,7 +195,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="sm" className="w-full">
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => setProfileOpen(true)}>
               <User className="h-5 w-5" />
               Profile
             </Button>
@@ -200,5 +203,33 @@ export function Navbar() {
         )}
       </div>
     </nav>
+    {/* Profile Dialog */}
+    <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle>User Profile</DialogTitle>
+          <DialogDescription>Manage your profile and quick actions.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="text-sm text-muted-foreground">
+            Signed in: Guest (authentication not set up yet)
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="zone"
+              onClick={() => {
+                window.dispatchEvent(new Event("all:refresh"));
+                setProfileOpen(false);
+              }}
+            >
+              Reload Data
+            </Button>
+            <Button variant="outline" onClick={() => setProfileOpen(false)}>Close</Button>
+          </div>
+        </div>
+        <DialogFooter />
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

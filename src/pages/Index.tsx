@@ -85,11 +85,27 @@ const Index = () => {
     });
     const off = onSettingsUpdated((s) => setSettings(s));
 
+    // Fallback: refresh zones/activity when a global zone:refresh is dispatched
+    const onZoneRefresh = () => {
+      loadZones();
+      loadActivity();
+    };
+    window.addEventListener("zone:refresh", onZoneRefresh as EventListener);
+
+    const onAllRefresh = () => {
+      loadKids();
+      loadZones();
+      loadActivity();
+    };
+    window.addEventListener("all:refresh", onAllRefresh as EventListener);
+
     return () => {
       unsubKids?.();
       unsubZones?.();
       unsubActivity?.();
       off?.();
+      window.removeEventListener("zone:refresh", onZoneRefresh as EventListener);
+      window.removeEventListener("all:refresh", onAllRefresh as EventListener);
     };
   }, []);
 
@@ -175,8 +191,8 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-glow/5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary-glow/5 pointer-events-none"></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="space-y-4">
@@ -229,13 +245,16 @@ const Index = () => {
                   <MapPin className="h-5 w-5" />
                   View Live Map
                 </Button>
-                <AddZoneModal onZoneAdded={handleZoneUpdated} />
+                <AddZoneModal buttonLabel="Add Zone" onZoneAdded={() => {
+                  handleZoneUpdated();
+                  window.dispatchEvent(new Event("zone:refresh"));
+                }} />
               </div>
             </div>
 
             <div className="relative">
 
-              <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/20 to-transparent rounded-2xl pointer-events-none"></div>
             </div>
           </div>
         </div>
