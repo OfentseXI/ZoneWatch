@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bell, Settings, User, Shield, Plus, Menu, X } from "lucide-react";
 import { AddZoneModal } from "@/components/AddZoneModal";
 import { useEffect, useMemo, useState } from "react";
-import { subscribeActivity } from "@/types/activity";
+import { Activity, subscribeActivity } from "@/types/activity";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { loadSettings, onSettingsUpdated, saveSettings } from "@/lib/settings";
 import About from "@/pages/About";
